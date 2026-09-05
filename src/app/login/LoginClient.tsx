@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Loader2, ShoppingBag } from "lucide-react";
-import { loginAction, signUpAction, verifyOtpAction } from "./actions";
+import { loginAction, signUpAction } from "./actions";
 
 // ----------------------------------------------------------------
 // ログインフォーム
@@ -72,82 +72,13 @@ function LoginForm({ next }: { next: string }) {
 }
 
 // ----------------------------------------------------------------
-// 会員登録フォーム（メール + パスワード + SMS OTP の2ステップ）
+// 会員登録フォーム（メール + パスワード）
 // ----------------------------------------------------------------
 function SignUpForm({ next }: { next: string }) {
-  const [signUpState, signUpAction_, signUpPending] = useActionState(
-    signUpAction,
-    null
-  );
-  const [otpState, otpAction_, otpPending] = useActionState(
-    verifyOtpAction,
-    null
-  );
-
-  // phone は OTP 検証ステップでも使うため state で保持
-  const [phone, setPhone] = useState("");
-
-  // signUpAction が otp ステップを返したら step を切り替える
-  const isOtpStep =
-    signUpState?.step === "otp" && !signUpState.error;
-
-  // OTP 検証エラーを表示するためにまとめる
-  const currentError = isOtpStep
-    ? otpState?.error
-    : signUpState?.error;
-
-  useEffect(() => {
-    // signUp 成功後、phone の値を OTP フォームに引き継ぐ
-  }, [signUpState]);
-
-  if (isOtpStep) {
-    return (
-      <form action={otpAction_} className="space-y-4">
-        <input type="hidden" name="next" value={next} />
-        <input type="hidden" name="phone" value={phone} />
-
-        <p className="text-sm text-muted-foreground">
-          <span className="font-medium">{phone}</span>{" "}
-          に認証コードをSMSで送信しました。受け取ったコードを入力してください。
-        </p>
-
-        <div className="space-y-1.5">
-          <Label htmlFor="otp-token">認証コード（6桁）</Label>
-          <Input
-            id="otp-token"
-            name="token"
-            type="text"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="123456"
-            required
-            autoComplete="one-time-code"
-          />
-        </div>
-
-        {currentError && (
-          <div className="flex items-start gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-            <AlertCircle className="mt-0.5 size-4 shrink-0" />
-            <span>{currentError}</span>
-          </div>
-        )}
-
-        <Button type="submit" className="w-full" disabled={otpPending}>
-          {otpPending ? (
-            <>
-              <Loader2 className="mr-2 size-4 animate-spin" />
-              確認中…
-            </>
-          ) : (
-            "認証コードを確認する"
-          )}
-        </Button>
-      </form>
-    );
-  }
+  const [state, action, pending] = useActionState(signUpAction, null);
 
   return (
-    <form action={signUpAction_} className="space-y-4">
+    <form action={action} className="space-y-4">
       <input type="hidden" name="next" value={next} />
 
       <div className="space-y-1.5">
@@ -175,40 +106,21 @@ function SignUpForm({ next }: { next: string }) {
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="signup-phone">
-          電話番号{" "}
-          <span className="text-xs text-muted-foreground">
-            （SMS認証用・国際形式 例: +819012345678）
-          </span>
-        </Label>
-        <Input
-          id="signup-phone"
-          name="phone"
-          type="tel"
-          placeholder="+819012345678"
-          required
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          autoComplete="tel"
-        />
-      </div>
-
-      {currentError && (
+      {state?.error && (
         <div className="flex items-start gap-2 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
           <AlertCircle className="mt-0.5 size-4 shrink-0" />
-          <span>{currentError}</span>
+          <span>{state.error}</span>
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={signUpPending}>
-        {signUpPending ? (
+      <Button type="submit" className="w-full" disabled={pending}>
+        {pending ? (
           <>
             <Loader2 className="mr-2 size-4 animate-spin" />
-            送信中…
+            登録中…
           </>
         ) : (
-          "会員登録してSMSコードを受け取る"
+          "会員登録"
         )}
       </Button>
     </form>
@@ -264,8 +176,7 @@ export default function LoginClient() {
             <CardHeader>
               <CardTitle>新規会員登録</CardTitle>
               <CardDescription>
-                メールアドレス・パスワード・電話番号を登録してください。
-                SMS認証で本人確認を行います。
+                メールアドレスとパスワードを入力してください。
               </CardDescription>
             </CardHeader>
             <CardContent>
