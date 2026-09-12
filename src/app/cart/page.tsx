@@ -4,9 +4,11 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { RemoveFromCartButton } from "@/components/shop/RemoveFromCartButton";
 import { buttonVariants } from "@/components/ui/button";
+import { CheckoutButton } from "@/components/shop/CheckoutButton";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "cn";
+import type { CheckoutCartItem } from "@/app/api/checkout/route";
 
 export const metadata = { title: "カート | C2C Shop" };
 
@@ -143,17 +145,21 @@ export default async function CartPage() {
               </div>
             ))}
 
-            {/* Stripe決済ボタン（Step4で実装） */}
+            {/* 購入ボタン */}
             <div className="mt-4">
-              <div
-                className={cn(
-                  buttonVariants({ variant: "default" }),
-                  "w-full cursor-not-allowed opacity-60"
-                )}
-                title="決済機能はStep4で実装予定"
-              >
-                購入手続きへ（Step4で実装）
-              </div>
+              <CheckoutButton
+                items={items
+                  .filter((i) => i.product && !i.product.is_sold_out)
+                  .map((i) => ({
+                    productId: i.product!.id,
+                    title: i.product!.title,
+                    price: Number(i.product!.price),
+                    currency: i.product!.currency,
+                    quantity: i.quantity,
+                    imageUrl: i.product!.image_urls?.[0],
+                  } satisfies CheckoutCartItem))}
+                disabled={items.every((i) => !i.product || i.product.is_sold_out)}
+              />
             </div>
           </div>
         </div>
