@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ImageGallery } from "@/components/shop/ImageGallery";
 import { FavoriteButton } from "@/components/shop/FavoriteButton";
 import { AddToCartButton } from "@/components/shop/AddToCartButton";
+import { ContactSellerButton } from "@/components/products/ContactSellerButton";
 import { Badge } from "@/components/ui/badge";
 
 type Props = {
@@ -49,6 +50,15 @@ export default async function ProductDetailPage({ params }: Props) {
       .single();
     isFavorite = !!fav;
   }
+
+  // 出品者（admin）のIDを取得
+  const { data: adminProfile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("role", "admin")
+    .limit(1)
+    .single();
+  const sellerId = adminProfile?.id ?? "";
 
   const priceLabel =
     product.currency === "JPY"
@@ -121,6 +131,16 @@ export default async function ProductDetailPage({ params }: Props) {
             isSoldOut={product.is_sold_out}
             isLoggedIn={!!user}
           />
+
+          {/* 出品者に問い合わせる */}
+          {sellerId && (
+            <ContactSellerButton
+              productId={product.id}
+              sellerId={sellerId}
+              isLoggedIn={!!user}
+              isSelf={user?.id === sellerId}
+            />
+          )}
         </div>
       </div>
     </main>
