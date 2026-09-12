@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
 // 未ログインユーザーをガードするパス
-const PROTECTED_PATHS = ["/cart", "/chats", "/admin"];
+const PROTECTED_PATHS = ["/cart", "/chats", "/admin", "/messages"];
 
 export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;

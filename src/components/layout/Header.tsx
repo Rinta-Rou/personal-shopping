@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { buttonVariants } from "@/components/ui/button";
-import { ShoppingBag, ShoppingCart, Heart, LogOut } from "lucide-react";
+import { ShoppingBag, ShoppingCart, Heart, MessageCircle, LogOut } from "lucide-react";
 import { cn } from "cn";
 import { signOutAction } from "@/app/actions/auth";
 
@@ -41,6 +41,15 @@ export async function Header() {
                 title="お気に入り"
               >
                 <Heart className="size-5" />
+              </Link>
+
+              {/* メッセージ */}
+              <Link
+                href="/messages"
+                className={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+                title="メッセージ"
+              >
+                <MessageCircle className="size-5" />
               </Link>
 
               {/* カート */}
